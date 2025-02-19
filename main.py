@@ -1,4 +1,5 @@
 import pygame
+import pygame.freetype
 import math
 import random
 
@@ -22,6 +23,9 @@ class Creature:
 
         # updates graphics
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
+    
+    def displayDetails(self):
+        GAME_FONT.render_to(screen, (100, 100), str(int(self.energy)), (40, 40, 40))
 
 class Plant:
     def __init__(self):
@@ -41,23 +45,38 @@ clock = pygame.time.Clock()
 creatures = [Creature((125, 125, 125), 10, random.randint(0, screenWidth), random.randint(0, screenHeight)) for _ in range(20)]
 plants = [Plant() for _ in range(50)]
 
+FRAME_RATE = 60
+GAME_FONT = pygame.freetype.SysFont('Comic Sans MS', 30)
 plantRegrow = 0
+slowed = False
 done = False
 while not done:
 
-    for event in pygame.event.get():
+    events = pygame.event.get()
+    for event in events:
         if event.type == pygame.QUIT:
             done = True
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                slowed = not slowed
+                if slowed:
+                    FRAME_RATE = 3
+                else: FRAME_RATE = 60
 
     screen.fill((255, 255, 255))
 
     for creature in creatures:
+        
+        if pygame.Vector2(pygame.mouse.get_pos()).distance_to(pygame.Vector2(creature.x, creature.y)) < creature.radius:
+                creature.displayDetails()
+
         # creatures randomly update speed and direction
         creature.speed += random.uniform(-1, 1)
         creature.direction += random.uniform(-10, 10)
         creature.move()
 
-        creature.energy -= 1 + creature.speed * 2
+        creature.energy -= (1 + creature.speed * 2)
 
         # creatures attempt to eat
         for plant in plants:
@@ -76,7 +95,7 @@ while not done:
     for plant in plants:
         plant.draw(screen)
 
-    clock.tick(60)
+    clock.tick(FRAME_RATE)
     pygame.display.flip()
 
 pygame.quit()
