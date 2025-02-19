@@ -21,6 +21,7 @@ as their parents and, with any luck, prove more adept at surviving in their envi
 
 - Environment:
     - Plant generation
+    - Borders
 
 <h1> Future Goals </h1>
 
@@ -31,10 +32,7 @@ as their parents and, with any luck, prove more adept at surviving in their envi
     - Reproduction
     - Sight
     - Intelligence
-<br>
 
-- Environment:
-    - Borders
 
 <h3> User Interface: </h3>
 

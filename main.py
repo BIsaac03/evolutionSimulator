@@ -4,10 +4,11 @@ import math
 import random
 
 class Creature:
-    def __init__(self, color, radius, x, y):
+    def __init__(self, color, radius, maxSpeed, x, y):
         # immutable characteristics
         self.color = color
         self.radius = radius
+        self.maxSpeed = maxSpeed
 
         # changing stats
         self.x = x
@@ -20,6 +21,10 @@ class Creature:
         # calculates updated position
         self.x += math.sin(math.radians(self.direction)) * self.speed
         self.y += math.cos(math.radians(self.direction)) * self.speed
+
+        # keeps creature on screen
+        self.x = max(0, min(screenWidth, self.x))
+        self.y = max(0, min(screenHeight, self.y))
 
         # updates graphics
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
@@ -42,7 +47,7 @@ screen = pygame.display.set_mode((screenWidth, screenHeight))
 pygame.display.set_caption("Interactive Evolution Simulator")
 clock = pygame.time.Clock()
 
-creatures = [Creature((125, 125, 125), 10, random.randint(0, screenWidth), random.randint(0, screenHeight)) for _ in range(20)]
+creatures = [Creature((125, 125, 125), 10, 3, random.randint(0, screenWidth), random.randint(0, screenHeight)) for _ in range(20)]
 plants = [Plant() for _ in range(50)]
 
 FRAME_RATE = 60
@@ -72,7 +77,7 @@ while not done:
                 creature.displayDetails()
 
         # creatures randomly update speed and direction
-        creature.speed = max(0, creature.speed + random.uniform(-1, 1))
+        creature.speed = max(0, min (creature.speed + random.uniform(-1, 1), creature.maxSpeed))
         creature.direction += random.uniform(-10, 10)
         creature.move()
 
