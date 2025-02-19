@@ -72,11 +72,11 @@ while not done:
                 creature.displayDetails()
 
         # creatures randomly update speed and direction
-        creature.speed += random.uniform(-1, 1)
+        creature.speed = max(0, creature.speed + random.uniform(-1, 1))
         creature.direction += random.uniform(-10, 10)
         creature.move()
 
-        creature.energy -= (1 + creature.speed * 2)
+        creature.energy -= (0.1 + creature.speed * 0.2)
 
         # creatures attempt to eat
         for plant in plants:
