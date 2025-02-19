@@ -12,22 +12,29 @@ as their parents and, with any luck, prove more adept at surviving in their envi
     pip install pygame
 <br>
 
+<h1> Current Status </h1>
+
+- Creatures:
+    - Movement
+    - Energy
+<br>
+
+- Environment:
+    - Plant generation
 
 <h1> Future Goals </h1>
 
 <h3> Basic Functionality: </h3>
 
 - Creatures:
-    - Movement
-    - Energy
     - Traits
     - Reproduction
     - Sight
+    - Intelligence
 <br>
 
 - Environment:
     - Borders
-    - Plant generation
 
 <h3> User Interface: </h3>
 
