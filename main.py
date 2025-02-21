@@ -3,6 +3,23 @@ import pygame.freetype
 import math
 import random
 
+SCREEN_WIDTH = 900
+SCREEN_HEIGHT = 600
+GAME_FONT = pygame.freetype.SysFont('Comic Sans MS', 30)
+
+FRAME_RATE = 60
+STARTING_CREATURES = 7
+STARTING_PLANTS = 5
+
+CONSTANT_ENERGY_LOSS = 0.1
+ENERGY_LOSS_PER_SPEED = 0.2
+ENERGY_NEEDED_TO_REPRODUCE = 120
+ENERGY_SPENT_TO_REPRODUCE = 100
+
+TIME_FOR_PLANT_GROWTH = 50
+PLANT_ENERGY = 100
+DISTANCE_TO_EAT = 10
+
 class Creature:
     def __init__(self, color, radius, maxSpeed, lifespan, ageOfMaturity, x, y):
         # immutable characteristics
@@ -26,8 +43,8 @@ class Creature:
         self.y += math.cos(math.radians(self.direction)) * self.speed
 
         # keeps creature on screen
-        self.x = max(0, min(screenWidth, self.x))
-        self.y = max(0, min(screenHeight, self.y))
+        self.x = max(0, min(SCREEN_WIDTH, self.x))
+        self.y = max(0, min(SCREEN_HEIGHT, self.y))
 
         # updates graphics
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
@@ -37,28 +54,25 @@ class Creature:
     
     def displayDetails(self):
         GAME_FONT.render_to(screen, (100, 100), str(int(self.energy)), (40, 40, 40))
-        GAME_FONT.render_to(screen, (100, 300), str(int(self.age)), (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 200), str(int(self.age)), (40, 40, 40))
 
 class Plant:
     def __init__(self):
-        self.x = random.randint(0, screenWidth)
-        self.y = random.randint(0, screenHeight)
+        self.x = random.randint(0, SCREEN_WIDTH)
+        self.y = random.randint(0, SCREEN_HEIGHT)
     
     def draw(self, screen):
         pygame.draw.circle(screen, (15, 200, 50), (self.x, self.y), 5)
 
 # SIMULATION SETUP
 pygame.init()
-screenWidth, screenHeight = 900, 600
-screen = pygame.display.set_mode((screenWidth, screenHeight))
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Interactive Evolution Simulator")
 clock = pygame.time.Clock()
 
-creatures = [Creature((125, 125, 125), 10, 3, 300, 100, random.randint(0, screenWidth), random.randint(0, screenHeight)) for _ in range(20)]
-plants = [Plant() for _ in range(50)]
+creatures = [Creature((125, 125, 125), 10, 3, 300, 100, random.randint(0, SCREEN_WIDTH), random.randint(0, SCREEN_HEIGHT)) for _ in range(STARTING_CREATURES)]
+plants = [Plant() for _ in range(STARTING_PLANTS)]
 
-FRAME_RATE = 60
-GAME_FONT = pygame.freetype.SysFont('Comic Sans MS', 30)
 plantRegrow = 0
 slowed = False
 done = False
@@ -89,12 +103,12 @@ while not done:
         creature.move()
 
         creature.age += 1
-        creature.energy -= (0.1 + creature.speed * 0.2)
+        creature.energy -= (CONSTANT_ENERGY_LOSS + creature.speed * ENERGY_LOSS_PER_SPEED)
 
         # creatures attempt to eat
         for plant in plants:
-            if pygame.math.Vector2(creature.x, creature.y).distance_to((plant.x, plant.y)) < 10:
-                creature.energy += 100
+            if pygame.math.Vector2(creature.x, creature.y).distance_to((plant.x, plant.y)) < DISTANCE_TO_EAT:
+                creature.energy += PLANT_ENERGY
                 plants.remove(plant)
 
         # kills starving and old creatures
@@ -102,13 +116,13 @@ while not done:
             creatures.remove(creature)
 
         # creatures attempt to reproduce
-        if creature.energy > 125 and creature.age > creature.ageOfMaturity:
-            creature.energy -= 100
+        if creature.energy > ENERGY_NEEDED_TO_REPRODUCE and creature.age > creature.ageOfMaturity:
+            creature.energy -= ENERGY_SPENT_TO_REPRODUCE
             child = creature.reproduce()
             creatures.append(child)
 
     plantRegrow += 1
-    if plantRegrow == 20:
+    if plantRegrow == TIME_FOR_PLANT_GROWTH:
         plants.append(Plant())
         plantRegrow = 0
 
