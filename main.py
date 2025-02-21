@@ -59,12 +59,24 @@ class Creature:
         pygame.draw.line(screen, (20, 20, 20), (int(self.x), int(self.y)), (int(self.x + self.radius * math.sin(math.radians(self.direction))), int(self.y + self.radius * math.cos(math.radians(self.direction)))))
 
     def reproduce(self):
-        return Creature(self.color, self.radius, self.maxSpeed, self.lifespan, self.ageOfMaturity, self.visionDistance, self.pereipheralVision, self.x, self.y)
-    
+        return Creature((max(0, min(255, self.color[0] + random.randint(-10, 10))), 
+                        max(0, min(255, self.color[1] + random.randint(-10, 10))), 
+                        max(0, min(255, self.color[2] + random.randint(-10, 10)))), 
+                        self.radius + random.randint(-1, 1),
+                        self.maxSpeed + random.randint(-1, 1),
+                        self.lifespan + random.randint(-20, 20), 
+                        self.ageOfMaturity + random.randint(-20, 20), 
+                        self.visionDistance + random.randint(-20, 20), 
+                        self.pereipheralVision + random.randint(-10, 10), 
+                        self.x, self.y)
+
     def displayDetails(self):
-        GAME_FONT.render_to(screen, (100, 100), str(int(self.energy)), (40, 40, 40))
-        GAME_FONT.render_to(screen, (100, 200), str(int(self.age)), (40, 40, 40))
-        GAME_FONT.render_to(screen, (100, 400), str(self.plantsInSight), (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 100), "Age: " + str(int(self.age)), (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 150), "Lifespan: " + str(int(self.lifespan)), (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 200), "Radius: " + str(int(self.radius)), (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 250), "Speed: " + str(int(self.speed)), (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 300), "Max Speed: " + str(int(self.maxSpeed)), (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 400), "Plants in Sight: " + str(self.plantsInSight), (40, 40, 40))
 
 class Plant:
     def __init__(self):
