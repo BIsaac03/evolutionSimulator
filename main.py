@@ -4,11 +4,13 @@ import math
 import random
 
 class Creature:
-    def __init__(self, color, radius, maxSpeed, x, y):
+    def __init__(self, color, radius, maxSpeed, lifespan, ageOfMaturity, x, y):
         # immutable characteristics
         self.color = color
         self.radius = radius
         self.maxSpeed = maxSpeed
+        self.lifespan = lifespan
+        self.ageOfMaturity = ageOfMaturity
 
         # changing stats
         self.x = x
@@ -16,6 +18,7 @@ class Creature:
         self.direction = random.randint(0, 360)
         self.speed = 0
         self.energy = 100
+        self.age = 0
     
     def move(self):
         # calculates updated position
@@ -29,8 +32,12 @@ class Creature:
         # updates graphics
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
     
+    def reproduce(self):
+        return Creature(self.color, self.radius, self.maxSpeed, self.lifespan, self.ageOfMaturity, self.x, self.y)
+    
     def displayDetails(self):
         GAME_FONT.render_to(screen, (100, 100), str(int(self.energy)), (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 300), str(int(self.age)), (40, 40, 40))
 
 class Plant:
     def __init__(self):
@@ -47,7 +54,7 @@ screen = pygame.display.set_mode((screenWidth, screenHeight))
 pygame.display.set_caption("Interactive Evolution Simulator")
 clock = pygame.time.Clock()
 
-creatures = [Creature((125, 125, 125), 10, 3, random.randint(0, screenWidth), random.randint(0, screenHeight)) for _ in range(20)]
+creatures = [Creature((125, 125, 125), 10, 3, 300, 100, random.randint(0, screenWidth), random.randint(0, screenHeight)) for _ in range(20)]
 plants = [Plant() for _ in range(50)]
 
 FRAME_RATE = 60
@@ -81,6 +88,7 @@ while not done:
         creature.direction += random.uniform(-10, 10)
         creature.move()
 
+        creature.age += 1
         creature.energy -= (0.1 + creature.speed * 0.2)
 
         # creatures attempt to eat
@@ -89,8 +97,15 @@ while not done:
                 creature.energy += 100
                 plants.remove(plant)
 
-        if creature.energy < 0:
+        # kills starving and old creatures
+        if creature.energy < 0 or creature.age > creature.lifespan:
             creatures.remove(creature)
+
+        # creatures attempt to reproduce
+        if creature.energy > 125 and creature.age > creature.ageOfMaturity:
+            creature.energy -= 100
+            child = creature.reproduce()
+            creatures.append(child)
 
     plantRegrow += 1
     if plantRegrow == 20:
