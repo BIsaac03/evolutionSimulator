@@ -17,6 +17,8 @@ as their parents and, with any luck, prove more adept at surviving in their envi
 - Creatures:
     - Movement
     - Energy
+    - Traits
+    - Reproduction
 <br>
 
 - Environment:
@@ -28,11 +30,8 @@ as their parents and, with any luck, prove more adept at surviving in their envi
 <h3> Basic Functionality: </h3>
 
 - Creatures:
-    - Traits
-    - Reproduction
     - Sight
     - Intelligence
-
 
 <h3> User Interface: </h3>
 
