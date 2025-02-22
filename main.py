@@ -7,13 +7,22 @@ SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 600
 
 FRAME_RATE = 60
-STARTING_CREATURES = 20
-STARTING_PLANTS = 40
+STARTING_CREATURES = 5
+STARTING_PLANTS = 80
 
-CONSTANT_ENERGY_LOSS = 0.1
-ENERGY_LOSS_PER_SPEED = 0.2
-ENERGY_NEEDED_TO_REPRODUCE = 120
+ORIGINAL_RADIUS = 10
+ORIGINAL_MAX_SPEED = 3
+ORIGINAL_LIFESPAN = 500
+ORIGINAL_AGE_OF_MATURITY = 200
+ORIGINAL_VISION_DISTANCE = 100
+ORIGINAL_PERIPHERAL_VISION = 100
+ORIGINAL_MAX_ENERGY = 500
+
+CONSTANT_ENERGY_LOSS = 0.05
+ENERGY_LOSS_PER_SPEED = 0.1
+ENERGY_NEEDED_TO_REPRODUCE = 300
 ENERGY_SPENT_TO_REPRODUCE = 100
+ENERGY_AT_BIRTH = 200
 
 TIME_FOR_PLANT_GROWTH = 5
 PLANT_ENERGY = 100
@@ -26,7 +35,7 @@ pygame.display.set_caption("Interactive Evolution Simulator")
 clock = pygame.time.Clock()
 
 class Creature:
-    def __init__(self, color, radius, maxSpeed, lifespan, ageOfMaturity, visionDistance, peripheralVision, x, y):
+    def __init__(self, color, radius, maxSpeed, lifespan, ageOfMaturity, visionDistance, peripheralVision, maxEnergy, x, y):
         # immutable characteristics
         self.color = color
         self.radius = radius
@@ -35,13 +44,14 @@ class Creature:
         self.ageOfMaturity = ageOfMaturity
         self.visionDistance = visionDistance
         self.pereipheralVision = peripheralVision
+        self.maxEnergy = maxEnergy
 
         # changing stats
         self.x = x
         self.y = y
         self.direction = random.randint(0, 360)
         self.speed = 0
-        self.energy = 100
+        self.energy = ENERGY_AT_BIRTH
         self.age = 0
         self.plantsInSight = []
         self.shouldDisplay = False
@@ -68,10 +78,12 @@ class Creature:
                         self.lifespan + random.randint(-20, 20), 
                         self.ageOfMaturity + random.randint(-20, 20), 
                         self.visionDistance + random.randint(-20, 20), 
-                        self.pereipheralVision + random.randint(-10, 10), 
+                        self.pereipheralVision + random.randint(-10, 10),
+                        self.maxEnergy + random.randint(-20, 20), 
                         self.x, self.y)
 
     def displayDetails(self):
+        GAME_FONT.render_to(screen, (100, 50), "Energy: " + str(int(self.energy)), (40, 40, 40))
         GAME_FONT.render_to(screen, (100, 100), "Age: " + str(int(self.age)), (40, 40, 40))
         GAME_FONT.render_to(screen, (100, 150), "Lifespan: " + str(int(self.lifespan)), (40, 40, 40))
         GAME_FONT.render_to(screen, (100, 200), "Radius: " + str(int(self.radius)), (40, 40, 40))
@@ -88,7 +100,9 @@ class Plant:
     def draw(self, screen):
         pygame.draw.circle(screen, (15, 200, 50), (self.x, self.y), 5)
 
-creatures = [Creature((125, 125, 125), 10, 3, 300, 100, 50, 20, random.randint(0, SCREEN_WIDTH), random.randint(0, SCREEN_HEIGHT)) for _ in range(STARTING_CREATURES)]
+creatures = [Creature((125, 125, 125),  ORIGINAL_RADIUS, ORIGINAL_MAX_SPEED, ORIGINAL_LIFESPAN, ORIGINAL_AGE_OF_MATURITY, ORIGINAL_VISION_DISTANCE, 
+                                        ORIGINAL_PERIPHERAL_VISION, ORIGINAL_MAX_ENERGY, random.randint(0, SCREEN_WIDTH), random.randint(0, SCREEN_HEIGHT)) 
+                                        for _ in range(STARTING_CREATURES)]
 plants = [Plant() for _ in range(STARTING_PLANTS)]
 
 plantRegrow = 0
@@ -108,16 +122,20 @@ while not done:
                     FRAME_RATE = 3
                 else: FRAME_RATE = 60
 
+            # arrow keys speed up/slow down the simulation
             elif event.key == pygame.K_LEFT:
                 FRAME_RATE = max(1, FRAME_RATE - 10)
             elif event.key == pygame.K_RIGHT:
                 FRAME_RATE = min(500, FRAME_RATE + 10)
 
+        # left click selects creature
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             for creature in creatures:
+                creature.shouldDisplay = False
                 if pygame.Vector2(pygame.mouse.get_pos()).distance_to(pygame.Vector2(creature.x, creature.y)) < creature.radius:
                     creature.shouldDisplay = True
-
+        
+        # right click deselects creature
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
             for creature in creatures:
                 creature.shouldDisplay = False
@@ -149,7 +167,7 @@ while not done:
                 if pygame.math.Vector2(creature.x, creature.y).angle_to((plant.x, plant.y)) % 360 - creature.direction % 360 <= creature.pereipheralVision / 2:
                     creature.plantsInSight.append((plant.x, plant.y))
 
-        # kills starving and old creatures
+        # starving and old creatures die
         if creature.energy < 0 or creature.age > creature.lifespan:
             creatures.remove(creature)
 
@@ -159,11 +177,11 @@ while not done:
             child = creature.reproduce()
             creatures.append(child)
 
+    # new plants grow
     plantRegrow += 1
     if plantRegrow == TIME_FOR_PLANT_GROWTH:
         plants.append(Plant())
         plantRegrow = 0
-
     for plant in plants:
         plant.draw(screen)
 
