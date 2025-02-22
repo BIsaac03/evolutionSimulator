@@ -10,37 +10,39 @@ as their parents and, with any luck, prove more adept at surviving in their envi
 <h3> Installing Required Packages: </h3>
 
     pip install pygame
-<br>
 
 <h1> Current Status </h1>
 
-- Creatures:
-    - Movement
-    - Energy
-    - Traits
-    - Reproduction
-    - Sight
-<br>
+<h3> Creatures: </h3>
 
-- Environment:
-    - Plant generation
-    - Borders
+- Random movement
+- Energy
+- Traits
+- Reproduction
+- Sight
 
-<h1> Future Goals </h1>
+<h3> Environment: </h3>
 
-<h3> Basic Functionality: </h3>
-
-- Creatures:
-    - Intelligence
+- Plant generation
+- Borders
 
 <h3> User Interface: </h3>
 
 - Adjustable clock speed
+- Individual creature pop-ups
+
+<h1> Future Goals </h1>
+
+<h3> Creatures: </h3>
+
+- Intelligence
+
+<h3> User Interface: </h3>
+
 - Adjustable mutation rate
 - Adjustable plant spawn rate
 - Manual creature movement
 - Customizable setup
-- Individual creature pop-ups
 - Evolution Summary
 
 <h3> Additional Features: </h3>

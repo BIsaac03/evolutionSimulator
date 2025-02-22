@@ -44,6 +44,7 @@ class Creature:
         self.energy = 100
         self.age = 0
         self.plantsInSight = []
+        self.shouldDisplay = False
     
     def move(self):
         # calculates updated position
@@ -77,6 +78,7 @@ class Creature:
         GAME_FONT.render_to(screen, (100, 250), "Speed: " + str(int(self.speed)), (40, 40, 40))
         GAME_FONT.render_to(screen, (100, 300), "Max Speed: " + str(int(self.maxSpeed)), (40, 40, 40))
         GAME_FONT.render_to(screen, (100, 400), "Plants in Sight: " + str(self.plantsInSight), (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 350), "Framerate: " + str(FRAME_RATE), (40, 40, 40))
 
 class Plant:
     def __init__(self):
@@ -99,19 +101,33 @@ while not done:
         if event.type == pygame.QUIT:
             done = True
 
-        if event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 slowed = not slowed
                 if slowed:
                     FRAME_RATE = 3
                 else: FRAME_RATE = 60
 
+            elif event.key == pygame.K_LEFT:
+                FRAME_RATE = max(1, FRAME_RATE - 10)
+            elif event.key == pygame.K_RIGHT:
+                FRAME_RATE = min(500, FRAME_RATE + 10)
+
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            for creature in creatures:
+                if pygame.Vector2(pygame.mouse.get_pos()).distance_to(pygame.Vector2(creature.x, creature.y)) < creature.radius:
+                    creature.shouldDisplay = True
+
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+            for creature in creatures:
+                creature.shouldDisplay = False
+
     screen.fill((255, 255, 255))
 
     for creature in creatures:
         
-        if pygame.Vector2(pygame.mouse.get_pos()).distance_to(pygame.Vector2(creature.x, creature.y)) < creature.radius:
-                creature.displayDetails()
+        if creature.shouldDisplay:
+            creature.displayDetails()
 
         # creatures randomly update speed and direction
         creature.speed = max(0, min (creature.speed + random.uniform(-1, 1), creature.maxSpeed))
