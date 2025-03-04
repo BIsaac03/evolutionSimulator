@@ -8,23 +8,22 @@ SCREEN_HEIGHT = 600
 
 FRAME_RATE = 60
 STARTING_CREATURES = 5
-STARTING_PLANTS = 80
+STARTING_PLANTS = 50
 
 ORIGINAL_RADIUS = 10
 ORIGINAL_MAX_SPEED = 3
 ORIGINAL_LIFESPAN = 500
 ORIGINAL_AGE_OF_MATURITY = 200
-ORIGINAL_VISION_DISTANCE = 100
-ORIGINAL_PERIPHERAL_VISION = 100
-ORIGINAL_MAX_ENERGY = 500
-
+ORIGINAL_VISION_DISTANCE = 50
+ORIGINAL_PERIPHERAL_VISION = 45
+ORIGINAL_MAX_ENERGY = 500 
 CONSTANT_ENERGY_LOSS = 0.05
 ENERGY_LOSS_PER_SPEED = 0.1
 ENERGY_NEEDED_TO_REPRODUCE = 300
-ENERGY_SPENT_TO_REPRODUCE = 100
+ENERGY_SPENT_TO_REPRODUCE = 200
 ENERGY_AT_BIRTH = 200
 
-TIME_FOR_PLANT_GROWTH = 5
+TIME_FOR_PLANT_GROWTH = 40
 PLANT_ENERGY = 100
 
 # SIMULATION SETUP
@@ -35,7 +34,7 @@ pygame.display.set_caption("Interactive Evolution Simulator")
 clock = pygame.time.Clock()
 
 class Creature:
-    def __init__(self, color, radius, maxSpeed, lifespan, ageOfMaturity, visionDistance, peripheralVision, maxEnergy, x, y):
+    def __init__(self, color, radius, maxSpeed, lifespan, ageOfMaturity, visionDistance, peripheralVision, maxEnergy, x, y,):
         # immutable characteristics
         self.color = color
         self.radius = radius
@@ -69,6 +68,19 @@ class Creature:
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
         pygame.draw.line(screen, (20, 20, 20), (int(self.x), int(self.y)), (int(self.x + self.radius * math.sin(math.radians(self.direction))), int(self.y + self.radius * math.cos(math.radians(self.direction)))))
 
+    def findOptimalPlant(self):
+        bestPriority = None
+        bestPlant = None
+        for plant in self.plantsInSight:
+            priority = math.dist((self.x, self.y), (plant[0], plant[1]))
+            if bestPriority == None or priority < bestPriority:
+                bestPriority = priority
+                bestPlant = plant
+        return bestPlant
+
+    def TEST_directToBestPlant(self, plant):
+        self.direction = (360 + math.degrees(math.atan2((plant[0] - self.x), (plant[1] - self.y) ))) % 360
+
     def reproduce(self):
         return Creature((max(0, min(255, self.color[0] + random.randint(-10, 10))), 
                         max(0, min(255, self.color[1] + random.randint(-10, 10))), 
@@ -87,10 +99,15 @@ class Creature:
         GAME_FONT.render_to(screen, (100, 100), "Age: " + str(int(self.age)), (40, 40, 40))
         GAME_FONT.render_to(screen, (100, 150), "Lifespan: " + str(int(self.lifespan)), (40, 40, 40))
         GAME_FONT.render_to(screen, (100, 200), "Radius: " + str(int(self.radius)), (40, 40, 40))
-        GAME_FONT.render_to(screen, (100, 250), "Speed: " + str(int(self.speed)), (40, 40, 40))
-        GAME_FONT.render_to(screen, (100, 300), "Max Speed: " + str(int(self.maxSpeed)), (40, 40, 40))
-        GAME_FONT.render_to(screen, (100, 400), "Plants in Sight: " + str(self.plantsInSight), (40, 40, 40))
-        GAME_FONT.render_to(screen, (100, 350), "Framerate: " + str(FRAME_RATE), (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 250), "Direction: " + str(int(self.direction)), (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 300), "Speed: " + str(int(self.speed)), (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 350), "Max Speed: " + str(int(self.maxSpeed)), (40, 40, 40))
+        if self.plantsInSight:
+            GAME_FONT.render_to(screen, (100, 400), "Plants in Sight: " + str(self.plantsInSight), (40, 40, 40))
+            GAME_FONT.render_to(screen, (100, 450), "Angle of Plants: " + str(math.degrees(math.atan2((self.plantsInSight[0][0] - self.x), (self.plantsInSight[0][1] - self.y)))))
+
+        else: GAME_FONT.render_to(screen, (100, 400), "Plants in Sight: None", (40, 40, 40))
+        GAME_FONT.render_to(screen, (100, 500), "Framerate: " + str(FRAME_RATE), (40, 40, 40))
 
 class Plant:
     def __init__(self):
@@ -132,7 +149,7 @@ while not done:
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             for creature in creatures:
                 creature.shouldDisplay = False
-                if pygame.Vector2(pygame.mouse.get_pos()).distance_to(pygame.Vector2(creature.x, creature.y)) < creature.radius:
+                if math.dist(pygame.mouse.get_pos(), (creature.x, creature.y)) < creature.radius:
                     creature.shouldDisplay = True
         
         # right click deselects creature
@@ -147,9 +164,15 @@ while not done:
         if creature.shouldDisplay:
             creature.displayDetails()
 
-        # creatures randomly update speed and direction
+        # creatures update speed and direction
         creature.speed = max(0, min (creature.speed + random.uniform(-1, 1), creature.maxSpeed))
-        creature.direction += random.uniform(-10, 10)
+        plant = creature.findOptimalPlant()
+        if plant is not None:
+            creature.TEST_directToBestPlant((plant[0], plant[1]))
+        
+        else:
+            creature.direction = (creature.direction + random.uniform(-10, 10)) % 360
+
         creature.move()
         creature.plantsInSight.clear()
 
@@ -158,13 +181,13 @@ while not done:
 
         # creatures attempt to eat
         for plant in plants:
-            if pygame.math.Vector2(creature.x, creature.y).distance_to((plant.x, plant.y)) <= creature.radius:
+            if math.dist((creature.x, creature.y), (plant.x, plant.y)) <= creature.radius:
                 creature.energy += PLANT_ENERGY
                 plants.remove(plant)
 
             # finds plants within creature's vision
-            elif pygame.math.Vector2(creature.x, creature.y).distance_to((plant.x, plant.y)) <= creature.visionDistance:
-                if pygame.math.Vector2(creature.x, creature.y).angle_to((plant.x, plant.y)) % 360 - creature.direction % 360 <= creature.pereipheralVision / 2:
+            elif math.dist((creature.x, creature.y), (plant.x, plant.y)) <= creature.visionDistance:
+                if abs((360 + math.degrees(math.atan2((plant.x - creature.x), (plant.y - creature.y) ))) % 360 - creature.direction) <= creature.pereipheralVision:
                     creature.plantsInSight.append((plant.x, plant.y))
 
         # starving and old creatures die
