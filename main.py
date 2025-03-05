@@ -1,3 +1,5 @@
+import NN
+
 import pygame
 import pygame.freetype
 import math
@@ -7,24 +9,24 @@ SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 600
 
 FRAME_RATE = 60
-STARTING_CREATURES = 5
-STARTING_PLANTS = 50
+STARTING_CREATURES = 300
+STARTING_PLANTS = 70
 
 ORIGINAL_RADIUS = 10
 ORIGINAL_MAX_SPEED = 3
 ORIGINAL_LIFESPAN = 500
 ORIGINAL_AGE_OF_MATURITY = 200
-ORIGINAL_VISION_DISTANCE = 50
-ORIGINAL_PERIPHERAL_VISION = 45
+ORIGINAL_VISION_DISTANCE = 150
+ORIGINAL_PERIPHERAL_VISION = 360
 ORIGINAL_MAX_ENERGY = 500 
 CONSTANT_ENERGY_LOSS = 0.05
 ENERGY_LOSS_PER_SPEED = 0.1
 ENERGY_NEEDED_TO_REPRODUCE = 300
 ENERGY_SPENT_TO_REPRODUCE = 200
-ENERGY_AT_BIRTH = 200
+ENERGY_AT_BIRTH = 150
 
-TIME_FOR_PLANT_GROWTH = 40
-PLANT_ENERGY = 100
+TIME_FOR_PLANT_GROWTH = 4
+PLANT_ENERGY = 200
 
 # SIMULATION SETUP
 pygame.init()
@@ -34,7 +36,7 @@ pygame.display.set_caption("Interactive Evolution Simulator")
 clock = pygame.time.Clock()
 
 class Creature:
-    def __init__(self, color, radius, maxSpeed, lifespan, ageOfMaturity, visionDistance, peripheralVision, maxEnergy, x, y,):
+    def __init__(self, color, radius, maxSpeed, lifespan, ageOfMaturity, visionDistance, peripheralVision, maxEnergy, movementModelWeights, x, y,):
         # immutable characteristics
         self.color = color
         self.radius = radius
@@ -44,6 +46,10 @@ class Creature:
         self.visionDistance = visionDistance
         self.pereipheralVision = peripheralVision
         self.maxEnergy = maxEnergy
+        self.movementModelWeights = movementModelWeights
+        self.movementModel = NN.creatureMovementNN(movementModelWeights[0], movementModelWeights[1], movementModelWeights[2], movementModelWeights[3],
+                                                   movementModelWeights[4], movementModelWeights[5], movementModelWeights[6], movementModelWeights[7], 
+                                                   movementModelWeights[8], movementModelWeights[9], movementModelWeights[10], movementModelWeights[11])
 
         # changing stats
         self.x = x
@@ -85,13 +91,29 @@ class Creature:
         return Creature((max(0, min(255, self.color[0] + random.randint(-10, 10))), 
                         max(0, min(255, self.color[1] + random.randint(-10, 10))), 
                         max(0, min(255, self.color[2] + random.randint(-10, 10)))), 
-                        self.radius + random.randint(-1, 1),
-                        self.maxSpeed + random.randint(-1, 1),
-                        self.lifespan + random.randint(-20, 20), 
-                        self.ageOfMaturity + random.randint(-20, 20), 
-                        self.visionDistance + random.randint(-20, 20), 
+                        self.radius,# + random.randint(-1, 1),
+                        self.maxSpeed,# + random.randint(-1, 1),
+                        self.lifespan + random.randint(-10, 10), 
+                        self.ageOfMaturity + random.randint(-10, 10), 
+                        self.visionDistance + random.randint(-10, 10), 
                         self.pereipheralVision + random.randint(-10, 10),
-                        self.maxEnergy + random.randint(-20, 20), 
+                        self.maxEnergy + random.uniform(-1, 1), 
+
+                        [[self.movementModelWeights[0][0] + random.uniform(-1, 1), self.movementModelWeights[0][1] + random.uniform(-1, 1), self.movementModelWeights[0][2] + random.uniform(-1, 1), self.movementModelWeights[0][3] + random.uniform(-1, 1)],
+                        [self.movementModelWeights[1][0] + random.uniform(-1, 1), self.movementModelWeights[1][1] + random.uniform(-1, 1), self.movementModelWeights[1][2] + random.uniform(-1, 1), self.movementModelWeights[1][3] + random.uniform(-1, 1)],
+                        [self.movementModelWeights[1][0] + random.uniform(-1, 1), self.movementModelWeights[2][1] + random.uniform(-1, 1), self.movementModelWeights[2][2] + random.uniform(-1, 1), self.movementModelWeights[2][3] + random.uniform(-1, 1)],
+                        [self.movementModelWeights[2][0] + random.uniform(-1, 1), self.movementModelWeights[3][1] + random.uniform(-1, 1), self.movementModelWeights[3][2] + random.uniform(-1, 1), self.movementModelWeights[3][3] + random.uniform(-1, 1)],
+                        
+                        [self.movementModelWeights[4][0] + random.uniform(-1, 1), self.movementModelWeights[4][1] + random.uniform(-1, 1), self.movementModelWeights[4][2] + random.uniform(-1, 1), self.movementModelWeights[4][3] + random.uniform(-1, 1)],
+                        [self.movementModelWeights[5][0] + random.uniform(-1, 1), self.movementModelWeights[5][1] + random.uniform(-1, 1), self.movementModelWeights[5][2] + random.uniform(-1, 1), self.movementModelWeights[5][3] + random.uniform(-1, 1)],
+                        [self.movementModelWeights[6][0] + random.uniform(-1, 1), self.movementModelWeights[6][1] + random.uniform(-1, 1), self.movementModelWeights[6][2] + random.uniform(-1, 1), self.movementModelWeights[6][3] + random.uniform(-1, 1)],
+                        [self.movementModelWeights[7][0] + random.uniform(-1, 1), self.movementModelWeights[7][1] + random.uniform(-1, 1), self.movementModelWeights[7][2] + random.uniform(-1, 1), self.movementModelWeights[7][3] + random.uniform(-1, 1)],
+                        
+                        [self.movementModelWeights[8][0] + random.uniform(-1, 1), self.movementModelWeights[8][1] + random.uniform(-1, 1)],
+                        [self.movementModelWeights[9][0] + random.uniform(-1, 1), self.movementModelWeights[9][1] + random.uniform(-1, 1)],
+                        [self.movementModelWeights[10][0] + random.uniform(-1, 1), self.movementModelWeights[10][1] + random.uniform(-1, 1)],
+                        [self.movementModelWeights[11][0] + random.uniform(-1, 1), self.movementModelWeights[11][1] + random.uniform(-1, 1)]],
+
                         self.x, self.y)
 
     def displayDetails(self):
@@ -117,9 +139,26 @@ class Plant:
     def draw(self, screen):
         pygame.draw.circle(screen, (15, 200, 50), (self.x, self.y), 5)
 
-creatures = [Creature((125, 125, 125),  ORIGINAL_RADIUS, ORIGINAL_MAX_SPEED, ORIGINAL_LIFESPAN, ORIGINAL_AGE_OF_MATURITY, ORIGINAL_VISION_DISTANCE, 
-                                        ORIGINAL_PERIPHERAL_VISION, ORIGINAL_MAX_ENERGY, random.randint(0, SCREEN_WIDTH), random.randint(0, SCREEN_HEIGHT)) 
+creatures = [Creature((125, 125, 125),  ORIGINAL_RADIUS, ORIGINAL_MAX_SPEED, ORIGINAL_LIFESPAN, ORIGINAL_AGE_OF_MATURITY, 
+                                        ORIGINAL_VISION_DISTANCE, ORIGINAL_PERIPHERAL_VISION, ORIGINAL_MAX_ENERGY, 
+                                        [[random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
+                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
+                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
+                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
+                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
+                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
+                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
+                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
+                                         [random.uniform(-1, 1), random.uniform(-1, 1)],
+                                         [random.uniform(-1, 1), random.uniform(-1, 1)],
+                                         [random.uniform(-1, 1), random.uniform(-1, 1)],
+                                         [random.uniform(-1, 1), random.uniform(-1, 1)]],
+                                        #[[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1],
+                                        # [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1],
+                                        # [1, 1], [1, 1], [1, 1], [1, 1]],
+                                        random.randint(0, SCREEN_WIDTH), random.randint(0, SCREEN_HEIGHT)) 
                                         for _ in range(STARTING_CREATURES)]
+
 plants = [Plant() for _ in range(STARTING_PLANTS)]
 
 plantRegrow = 0
@@ -135,7 +174,7 @@ while not done:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 slowed = not slowed
-                if slowed:
+                while slowed:
                     FRAME_RATE = 3
                 else: FRAME_RATE = 60
 
@@ -168,7 +207,11 @@ while not done:
         creature.speed = max(0, min (creature.speed + random.uniform(-1, 1), creature.maxSpeed))
         plant = creature.findOptimalPlant()
         if plant is not None:
-            creature.TEST_directToBestPlant((plant[0], plant[1]))
+            #creature.TEST_directToBestPlant((plant[0], plant[1]))
+            speedChange, directionChange = creature.movementModel.determineMovement(plant[0] - creature.x, plant[1] - creature.y, creature.speed, creature.direction)
+            directionChange = min(max(-20, directionChange), 20)
+            creature.speed = max(0, min (creature.speed + speedChange, creature.maxSpeed))
+            creature.direction = (creature.direction + directionChange / 5) % 360
         
         else:
             creature.direction = (creature.direction + random.uniform(-10, 10)) % 360
