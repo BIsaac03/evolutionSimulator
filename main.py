@@ -131,6 +131,8 @@ class Creature:
         else: GAME_FONT.render_to(screen, (100, 400), "Plants in Sight: None", (40, 40, 40))
         GAME_FONT.render_to(screen, (100, 500), "Framerate: " + str(FRAME_RATE), (40, 40, 40))
 
+        pygame.draw.circle(screen, (0,0,0), (200, 550), 20)
+
 class Plant:
     def __init__(self):
         self.x = random.randint(0, SCREEN_WIDTH)
@@ -162,7 +164,7 @@ creatures = [Creature((125, 125, 125),  ORIGINAL_RADIUS, ORIGINAL_MAX_SPEED, ORI
 plants = [Plant() for _ in range(STARTING_PLANTS)]
 
 plantRegrow = 0
-slowed = False
+paused = False
 done = False
 while not done:
 
@@ -173,10 +175,20 @@ while not done:
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                slowed = not slowed
-                while slowed:
-                    FRAME_RATE = 3
-                else: FRAME_RATE = 60
+                paused = not paused
+                while paused:
+                    for event in pygame.event.get():
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_SPACE:
+                                paused = not paused
+
+                        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                            for creature in creatures:
+                                creature.shouldDisplay = False
+                                if math.dist(pygame.mouse.get_pos(), (creature.x, creature.y)) < creature.radius:
+                                    creature.shouldDisplay = True
+                                    creature.displayDetails()
+                                    pygame.display.flip()
 
             # arrow keys speed up/slow down the simulation
             elif event.key == pygame.K_LEFT:
