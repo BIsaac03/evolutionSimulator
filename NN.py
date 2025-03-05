@@ -21,16 +21,6 @@ class creatureMovementNN:
         self.A4wB3 = A4[2]
         self.A4wB4 = A4[3]
 
-#        self.A5wB1 = A1[0]
-#        self.A5wB2 = A1[1]
-#        self.A5wB3 = A1[2]
-#        self.A5wB4 = A1[3]
-
-#        self.A6wB1 = A1[0]
-#        self.A6wB2 = A1[1]
-#        self.A6wB3 = A1[2]
-#        self.A6wB4 = A1[3]
-
         self.B1wC1 = B1[0]
         self.B1wC2 = B1[1]
         self.B1wC3 = B1[2]

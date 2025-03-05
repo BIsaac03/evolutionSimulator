@@ -23,10 +23,10 @@ CONSTANT_ENERGY_LOSS = 0.05
 ENERGY_LOSS_PER_SPEED = 0.1
 ENERGY_NEEDED_TO_REPRODUCE = 300
 ENERGY_SPENT_TO_REPRODUCE = 200
-ENERGY_AT_BIRTH = 150
+ENERGY_AT_BIRTH = 200
 
-TIME_FOR_PLANT_GROWTH = 4
-PLANT_ENERGY = 200
+TIME_FOR_PLANT_GROWTH = 10
+PLANT_ENERGY = 150
 
 # SIMULATION SETUP
 pygame.init()
@@ -198,6 +198,13 @@ while not done:
 
         # left click selects creature
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if math.dist(pygame.mouse.get_pos(), (200, 550)) < 20:
+                for creature in creatures:
+                    if creature.shouldDisplay == True:
+                        f = open("creatureNN.txt", "w")
+                        f.write(str(creature.movementModelWeights))
+                        f.close()
+
             for creature in creatures:
                 creature.shouldDisplay = False
                 if math.dist(pygame.mouse.get_pos(), (creature.x, creature.y)) < creature.radius:
