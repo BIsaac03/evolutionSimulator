@@ -34,7 +34,10 @@ L2NEURONS = 64
 L3NEURONS = 32
 
 def creatureNNMutation():
-    return random.gauss(0, 0.01)
+    chance = random.randint(1, 100)
+    if chance == 100:
+        return random.gauss(0, 0.3)
+    else: return random.gauss(0, 0.01)
 
 # SIMULATION SETUP
 pygame.init()
