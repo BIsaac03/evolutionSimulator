@@ -9,7 +9,7 @@ SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 600
 
 FRAME_RATE = 60
-STARTING_CREATURES = 50
+STARTING_CREATURES = 150
 STARTING_PLANTS = 70
 
 ORIGINAL_RADIUS = 10
@@ -29,9 +29,9 @@ TIME_FOR_PLANT_GROWTH = 10
 PLANT_ENERGY = 150
 
 # Neural Network Variables
-L1Neurons = 64
-L2Neurons = 64
-L3Neurons = 32
+L1NEURONS = 128
+L2NEURONS = 64
+L3NEURONS = 32
 
 def creatureNNMutation():
     return random.gauss(0, 0.01)
@@ -56,10 +56,10 @@ class Creature:
         self.pereipheralVision = peripheralVision
         self.maxEnergy = maxEnergy
         self.movementModelWeights = movementModelWeights
-        self.movementModel = NN.creatureMovementNN([[movementModelWeights[0][i][j] for j in range(2)] for i in range (L1Neurons)], 
-                                                   [[movementModelWeights[1][i][j] for j in range(L1Neurons)] for i in range (L2Neurons)], 
-                                                   [[movementModelWeights[2][i][j] for j in range(L2Neurons)]for i in range (L3Neurons)], 
-                                                   [[movementModelWeights[3][i][j] for j in range(L3Neurons)] for i in range (2)])
+        self.movementModel = NN.creatureMovementNN([[movementModelWeights[0][i][j] for j in range(2)] for i in range (L1NEURONS)], 
+                                                   [[movementModelWeights[1][i][j] for j in range(L1NEURONS)] for i in range (L2NEURONS)], 
+                                                   [[movementModelWeights[2][i][j] for j in range(L2NEURONS)]for i in range (L3NEURONS)], 
+                                                   [[movementModelWeights[3][i][j] for j in range(L3NEURONS)] for i in range (2)])
         
         # changing stats
         self.x = x
@@ -111,10 +111,10 @@ class Creature:
                         self.pereipheralVision + random.randint(-10, 10),
                         self.maxEnergy + random.uniform(-1, 1), 
                         
-                        [[[self.movementModelWeights[0][i][j] + creatureNNMutation() for j in range(2)] for i in range(L1Neurons)],
-                        [[self.movementModelWeights[1][i][j] + creatureNNMutation() for j in range(L1Neurons)] for i in range(L2Neurons)],
-                        [[self.movementModelWeights[2][i][j] + creatureNNMutation() for j in range(L2Neurons)] for i in range(L3Neurons)],
-                        [[self.movementModelWeights[3][i][j] + creatureNNMutation() for j in range(L3Neurons)] for i in range(2)]],
+                        [[[self.movementModelWeights[0][i][j] + creatureNNMutation() for j in range(2)] for i in range(L1NEURONS)],
+                        [[self.movementModelWeights[1][i][j] + creatureNNMutation() for j in range(L1NEURONS)] for i in range(L2NEURONS)],
+                        [[self.movementModelWeights[2][i][j] + creatureNNMutation() for j in range(L2NEURONS)] for i in range(L3NEURONS)],
+                        [[self.movementModelWeights[3][i][j] + creatureNNMutation() for j in range(L3NEURONS)] for i in range(2)]],
 
                         self.x, self.y)
 
@@ -153,12 +153,16 @@ class Plant:
     def draw(self, screen):
         pygame.draw.circle(screen, (15, 200, 50), (self.x, self.y), 5)
 
+NNfile = open("creatureNN.txt", "r")
+trainedNN = eval(NNfile.read())
+
 creatures = [Creature(1, (125, 125, 125),  ORIGINAL_RADIUS, ORIGINAL_MAX_SPEED, ORIGINAL_LIFESPAN, ORIGINAL_AGE_OF_MATURITY, 
                                         ORIGINAL_VISION_DISTANCE, ORIGINAL_PERIPHERAL_VISION, ORIGINAL_MAX_ENERGY, 
-                                        [[[random.uniform(-1, 1) for _ in range(2)] for _ in range(L1Neurons)],
-                                        [[random.uniform(-1, 1) for _ in range(L1Neurons)] for _ in range(L2Neurons)],
-                                        [[random.uniform(-1, 1) for _ in range(L2Neurons)] for _ in range(L3Neurons)],
-                                        [[random.uniform(-1, 1) for _ in range(L3Neurons)] for _ in range(2)]],
+                                        #[[[random.uniform(-1, 1) for _ in range(2)] for _ in range(L1NEURONS)],
+                                        #[[random.uniform(-1, 1) for _ in range(L1NEURONS)] for _ in range(L2NEURONS)],
+                                        #[[random.uniform(-1, 1) for _ in range(L2NEURONS)] for _ in range(L3NEURONS)],
+                                        #[[random.uniform(-1, 1) for _ in range(L3NEURONS)] for _ in range(2)]],
+                                        trainedNN,
                                         random.randint(300, SCREEN_WIDTH), random.randint(0, SCREEN_HEIGHT)) 
                                         for _ in range(STARTING_CREATURES)]
 
