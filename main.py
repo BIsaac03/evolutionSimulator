@@ -9,7 +9,7 @@ SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 600
 
 FRAME_RATE = 60
-STARTING_CREATURES = 300
+STARTING_CREATURES = 50
 STARTING_PLANTS = 70
 
 ORIGINAL_RADIUS = 10
@@ -23,10 +23,15 @@ CONSTANT_ENERGY_LOSS = 0.05
 ENERGY_LOSS_PER_SPEED = 0.1
 ENERGY_NEEDED_TO_REPRODUCE = 300
 ENERGY_SPENT_TO_REPRODUCE = 100
-ENERGY_AT_BIRTH = 200
+ENERGY_AT_BIRTH = 150
 
 TIME_FOR_PLANT_GROWTH = 10
-PLANT_ENERGY = 250
+PLANT_ENERGY = 150
+
+# Neural Network Variables
+L1Neurons = 64
+L2Neurons = 64
+L3Neurons = 32
 
 def creatureNNMutation():
     return random.gauss(0, 0.01)
@@ -51,10 +56,11 @@ class Creature:
         self.pereipheralVision = peripheralVision
         self.maxEnergy = maxEnergy
         self.movementModelWeights = movementModelWeights
-        self.movementModel = NN.creatureMovementNN(movementModelWeights[0], movementModelWeights[1], movementModelWeights[2], movementModelWeights[3],
-                                                   movementModelWeights[4], movementModelWeights[5], movementModelWeights[6], movementModelWeights[7], 
-                                                   movementModelWeights[8], movementModelWeights[9])
-
+        self.movementModel = NN.creatureMovementNN([[movementModelWeights[0][i][j] for j in range(2)] for i in range (L1Neurons)], 
+                                                   [[movementModelWeights[1][i][j] for j in range(L1Neurons)] for i in range (L2Neurons)], 
+                                                   [[movementModelWeights[2][i][j] for j in range(L2Neurons)]for i in range (L3Neurons)], 
+                                                   [[movementModelWeights[3][i][j] for j in range(L3Neurons)] for i in range (2)])
+        
         # changing stats
         self.x = x
         self.y = y
@@ -104,19 +110,11 @@ class Creature:
                         self.visionDistance + random.randint(-10, 10), 
                         self.pereipheralVision + random.randint(-10, 10),
                         self.maxEnergy + random.uniform(-1, 1), 
-
-                        [[self.movementModelWeights[0][0] + creatureNNMutation(), self.movementModelWeights[0][1] + creatureNNMutation(), self.movementModelWeights[0][2] + creatureNNMutation(), self.movementModelWeights[0][3] + creatureNNMutation()],
-                        [self.movementModelWeights[1][0] + creatureNNMutation(), self.movementModelWeights[1][1] + creatureNNMutation(), self.movementModelWeights[1][2] + creatureNNMutation(), self.movementModelWeights[1][3] + creatureNNMutation()],
                         
-                        [self.movementModelWeights[2][0] + creatureNNMutation(), self.movementModelWeights[2][1] + creatureNNMutation(), self.movementModelWeights[2][2] + creatureNNMutation(), self.movementModelWeights[2][3] + creatureNNMutation()],
-                        [self.movementModelWeights[3][0] + creatureNNMutation(), self.movementModelWeights[3][1] + creatureNNMutation(), self.movementModelWeights[3][2] + creatureNNMutation(), self.movementModelWeights[3][3] + creatureNNMutation()],
-                        [self.movementModelWeights[4][0] + creatureNNMutation(), self.movementModelWeights[4][1] + creatureNNMutation(), self.movementModelWeights[4][2] + creatureNNMutation(), self.movementModelWeights[4][3] + creatureNNMutation()],
-                        [self.movementModelWeights[5][0] + creatureNNMutation(), self.movementModelWeights[5][1] + creatureNNMutation(), self.movementModelWeights[5][2] + creatureNNMutation(), self.movementModelWeights[5][3] + creatureNNMutation()],
-                        
-                        [self.movementModelWeights[6][0] + creatureNNMutation(), self.movementModelWeights[6][1] + creatureNNMutation(), self.movementModelWeights[6][2] + creatureNNMutation()],
-                        [self.movementModelWeights[7][0] + creatureNNMutation(), self.movementModelWeights[7][1] + creatureNNMutation(), self.movementModelWeights[7][2] + creatureNNMutation()],
-                        [self.movementModelWeights[8][0] + creatureNNMutation(), self.movementModelWeights[8][1] + creatureNNMutation(), self.movementModelWeights[8][2] + creatureNNMutation()],
-                        [self.movementModelWeights[9][0] + creatureNNMutation(), self.movementModelWeights[9][1] + creatureNNMutation(), self.movementModelWeights[9][2] + creatureNNMutation()]],
+                        [[[self.movementModelWeights[0][i][j] + creatureNNMutation() for j in range(2)] for i in range(L1Neurons)],
+                        [[self.movementModelWeights[1][i][j] + creatureNNMutation() for j in range(L1Neurons)] for i in range(L2Neurons)],
+                        [[self.movementModelWeights[2][i][j] + creatureNNMutation() for j in range(L2Neurons)] for i in range(L3Neurons)],
+                        [[self.movementModelWeights[3][i][j] + creatureNNMutation() for j in range(L3Neurons)] for i in range(2)]],
 
                         self.x, self.y)
 
@@ -157,19 +155,10 @@ class Plant:
 
 creatures = [Creature(1, (125, 125, 125),  ORIGINAL_RADIUS, ORIGINAL_MAX_SPEED, ORIGINAL_LIFESPAN, ORIGINAL_AGE_OF_MATURITY, 
                                         ORIGINAL_VISION_DISTANCE, ORIGINAL_PERIPHERAL_VISION, ORIGINAL_MAX_ENERGY, 
-                                        [[random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
-                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
-                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
-                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
-                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
-                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
-                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
-                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
-                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
-                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
-                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)],
-                                         [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)]],
-
+                                        [[[random.uniform(-1, 1) for _ in range(2)] for _ in range(L1Neurons)],
+                                        [[random.uniform(-1, 1) for _ in range(L1Neurons)] for _ in range(L2Neurons)],
+                                        [[random.uniform(-1, 1) for _ in range(L2Neurons)] for _ in range(L3Neurons)],
+                                        [[random.uniform(-1, 1) for _ in range(L3Neurons)] for _ in range(2)]],
                                         random.randint(300, SCREEN_WIDTH), random.randint(0, SCREEN_HEIGHT)) 
                                         for _ in range(STARTING_CREATURES)]
 
@@ -228,6 +217,7 @@ while not done:
                 creature.shouldDisplay = False
 
     screen.fill((255, 255, 255))
+    pygame.draw.line(screen, (0,0,0), (300, 0), (300, SCREEN_HEIGHT), 1)
 
     for creature in creatures:
         
@@ -239,9 +229,9 @@ while not done:
         plant = creature.findOptimalPlant()
         if plant is not None:
             #creature.desiredDirection = (360 + math.degrees(math.atan2((plant[0] - creature.x), (plant[1] - creature.y) ))) % 360
-            direction, speed = creature.movementModel.determineMovement(plant[0] - creature.x, plant[1] - creature.y)
+            output = creature.movementModel.determineMovement([plant[0] - creature.x, plant[1] - creature.y])
 
-            creature.desiredDirection = direction * 180             
+            creature.desiredDirection = output[0] * 180             
             adjustment = (creature.desiredDirection - creature.direction + 540) % 360 - 180
 
             creature.direction = (creature.direction + max(-20, min(20, adjustment)) + 540) % 360 - 180
