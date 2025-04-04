@@ -9,15 +9,15 @@ SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 600
 
 FRAME_RATE = 60
-STARTING_CREATURES = 150
+STARTING_CREATURES = 15
 STARTING_PLANTS = 70
 
 ORIGINAL_RADIUS = 10
 ORIGINAL_MAX_SPEED = 3
 ORIGINAL_LIFESPAN = 500
 ORIGINAL_AGE_OF_MATURITY = 200
-ORIGINAL_VISION_DISTANCE = 550
-ORIGINAL_PERIPHERAL_VISION = 360
+ORIGINAL_VISION_DISTANCE = 150
+ORIGINAL_PERIPHERAL_VISION = 45
 ORIGINAL_MAX_ENERGY = 500 
 CONSTANT_ENERGY_LOSS = 0.05
 ENERGY_LOSS_PER_SPEED = 0.1
@@ -42,7 +42,8 @@ def creatureNNMutation():
 # SIMULATION SETUP
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-GAME_FONT = pygame.freetype.SysFont('Comic Sans MS', 30)
+DISPLAY_FONT = pygame.freetype.SysFont('Comic Sans MS', 30)
+LABEL_FONT = pygame.freetype.SysFont('Comic Sans MS', 15)
 pygame.display.set_caption("Interactive Evolution Simulator")
 clock = pygame.time.Clock()
 
@@ -122,14 +123,13 @@ class Creature:
                         self.x, self.y)
 
     def displayDetails(self):
-        GAME_FONT.render_to(screen, (10, 50), "Generation: " + str(int(self.generation)), (40, 40, 40))
-        GAME_FONT.render_to(screen, (10, 100), "Energy: " + str(int(self.energy)), (40, 40, 40))
-        GAME_FONT.render_to(screen, (10, 150), "Age: " + str(int(self.age)), (40, 40, 40))
-        GAME_FONT.render_to(screen, (10, 200), "Lifespan: " + str(int(self.lifespan)), (40, 40, 40))
+        DISPLAY_FONT.render_to(screen, (10, 100), "Generation: " + str(int(self.generation)), (40, 40, 40))
+        DISPLAY_FONT.render_to(screen, (10, 150), "Energy: " + str(int(self.energy)), (40, 40, 40))
+        DISPLAY_FONT.render_to(screen, (10, 200), "Age: " + str(int(self.age)), (40, 40, 40))
+        DISPLAY_FONT.render_to(screen, (10, 250), "Lifespan: " + str(int(self.lifespan)), (40, 40, 40))
         if self.desiredDirection != None:
-            GAME_FONT.render_to(screen, (10, 250), "Desired Direction: " + str(int(self.desiredDirection)), (40, 40, 40))
-        GAME_FONT.render_to(screen, (10, 300), "Direction: " + str(int(self.direction)), (40, 40, 40))
-        GAME_FONT.render_to(screen, (10, 350), "Speed: " + str(int(self.speed)), (40, 40, 40))
+            DISPLAY_FONT.render_to(screen, (10, 300), "Desired Direction: " + str(int(self.desiredDirection)), (40, 40, 40))
+        DISPLAY_FONT.render_to(screen, (10, 350), "Speed: " + str(int(self.speed)), (40, 40, 40))
         
         bestPriority = None
         bestPlant = None
@@ -140,13 +140,16 @@ class Creature:
                     bestPriority = priority
                     bestPlant = plant        
 
-            GAME_FONT.render_to(screen, (10, 400), "Closest Plant: " + str(round(bestPlant[0] - self.x, 2)) + "   " + str(round(bestPlant[1] - self.y, 2)), (40, 40, 40))
-            GAME_FONT.render_to(screen, (10, 450), "Direction to Plant: " + str(round(math.degrees(math.atan2((bestPlant[0] - self.x), (bestPlant[1] - self.y))), 2)))
+            DISPLAY_FONT.render_to(screen, (10, 400), "Closest Plant: " + str(round(bestPlant[0] - self.x, 2)) + "   " + str(round(bestPlant[1] - self.y, 2)), (40, 40, 40))
+            DISPLAY_FONT.render_to(screen, (10, 450), "Direction to Plant: " + str(round(math.degrees(math.atan2((bestPlant[0] - self.x), (bestPlant[1] - self.y))), 2)))
 
-        else: GAME_FONT.render_to(screen, (10, 400), "No Plants in Sight", (40, 40, 40))
-        GAME_FONT.render_to(screen, (10, 500), "Framerate: " + str(FRAME_RATE), (40, 40, 40))
+        else: DISPLAY_FONT.render_to(screen, (10, 400), "No Plants in Sight", (40, 40, 40))
+        DISPLAY_FONT.render_to(screen, (10, 500), "Framerate: " + str(FRAME_RATE), (40, 40, 40))
 
-        pygame.draw.circle(screen, (0,0,0), (100, 550), 20)
+        pygame.draw.circle(screen, (0,0,0), (100, 20), 20)
+        LABEL_FONT.render_to(screen, (70, 50), "Save NN", (40, 40, 40))
+        pygame.draw.circle(screen, (170,50,70), (250, 20), 20)
+        LABEL_FONT.render_to(screen, (238, 50), "Cull", (40, 40, 40))
 
 class Plant:
     def __init__(self):
@@ -205,15 +208,23 @@ while not done:
             elif event.key == pygame.K_RIGHT:
                 FRAME_RATE = min(500, FRAME_RATE + 10)
 
-        # left click selects creature
+        
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if math.dist(pygame.mouse.get_pos(), (100, 550)) < 20:
+            # "save NN" button
+            if math.dist(pygame.mouse.get_pos(), (100, 20)) < 20:
                 for creature in creatures:
                     if creature.shouldDisplay == True:
                         f = open("creatureNN.txt", "w")
                         f.write(str(creature.movementModelWeights))
                         f.close()
 
+            # "cull" button
+            if math.dist(pygame.mouse.get_pos(), (250, 20)) < 20:
+                for creature in creatures:
+                    if creature.shouldDisplay == True:
+                        creatures.remove(creature)
+
+            # left click selects creature
             for creature in creatures:
                 creature.shouldDisplay = False
                 if math.dist(pygame.mouse.get_pos(), (creature.x, creature.y)) < creature.radius:
@@ -309,6 +320,5 @@ while not done:
         print("-135    ", d7 * 180)
         print("135     ", d8 * 180)
         testTick = 0
-
 
 pygame.quit()
