@@ -21,23 +21,25 @@ ORIGINAL_PERIPHERAL_VISION = 45
 ORIGINAL_MAX_ENERGY = 500 
 CONSTANT_ENERGY_LOSS = 0.05
 ENERGY_LOSS_PER_SPEED = 0.1
-ENERGY_NEEDED_TO_REPRODUCE = 300
+ENERGY_NEEDED_TO_REPRODUCE = 200
 ENERGY_SPENT_TO_REPRODUCE = 100
 ENERGY_AT_BIRTH = 150
 
-TIME_FOR_PLANT_GROWTH = 10
-PLANT_ENERGY = 150
+timeForPlantGrowth = 10
+plantEnergy = 150
 
 # Neural Network Variables
-L1NEURONS = 128
-L2NEURONS = 64
+L1NEURONS = 256
+L2NEURONS = 128
 L3NEURONS = 32
+normalMutationStd = 0.01
+majorMutationStd = 0.3
 
 def creatureNNMutation():
     chance = random.randint(1, 100)
     if chance == 100:
-        return random.gauss(0, 0.3)
-    else: return random.gauss(0, 0.01)
+        return random.gauss(0, majorMutationStd)
+    else: return random.gauss(0, normalMutationStd)
 
 # SIMULATION SETUP
 pygame.init()
@@ -105,9 +107,6 @@ class Creature:
                 bestPriority = priority
                 bestPlant = plant
         return bestPlant
-
-    def TEST_directToBestPlant(self, plant):
-        self.direction = (360 + math.degrees(math.atan2((plant[0] - self.x), (plant[1] - self.y) ))) % 360
 
     def reproduce(self):
         return Creature(self.generation + 1,
@@ -190,6 +189,7 @@ plants = [Plant() for _ in range(STARTING_PLANTS)]
 
 testTick = 0
 plantRegrow = 0
+displaySettings = False
 paused = False
 done = False
 while not done:
@@ -205,7 +205,19 @@ while not done:
                     creature.shouldDisplay = False
                     if math.dist(pygame.mouse.get_pos(), (creature.x, creature.y)) < creature.radius:
                         creature.shouldDisplay = True
-                        creature.displayDetails()      
+                        creature.displayDetails()
+                if math.dist(pygame.mouse.get_pos(), (30, 150)) < 20:
+                    normalMutationStd = float(input("Desired std: "))
+                if math.dist(pygame.mouse.get_pos(), (30, 300)) < 20:
+                    timeForPlantGrowth = int(input("Desired time: "))
+
+        if displaySettings:
+            for creature in creatures:
+                    creature.shouldDisplay = False
+            DISPLAY_FONT.render_to(screen, (10, 100), "Mutation std: " + str(float(normalMutationStd)), (40, 40, 40))
+            screen.blit(SETTINGS_ICON, (10, 130))
+            DISPLAY_FONT.render_to(screen, (10, 250), "Time for Plant Growth: " + str(timeForPlantGrowth)), (40, 40, 40)
+            screen.blit(SETTINGS_ICON, (10, 280))
         pygame.display.flip()
 
     events = pygame.event.get()
@@ -228,6 +240,7 @@ while not done:
             # "modiy sim." button
             if math.dist(pygame.mouse.get_pos(), (50, 25)) < 20:
                 paused = True
+                displaySettings = True
 
             # "save NN" button
             if math.dist(pygame.mouse.get_pos(), (150, 20)) < 20:
@@ -264,7 +277,7 @@ while not done:
             creature.displayDetails()
 
         # creatures update speed and direction
-        creature.speed = 2#max(0, min (creature.speed + random.uniform(-1, 1), creature.maxSpeed))
+        creature.speed = 10#max(0, min (creature.speed + random.uniform(-1, 1), creature.maxSpeed))
         plant = creature.findOptimalPlant()
         if plant is not None:
             #creature.desiredDirection = (360 + math.degrees(math.atan2((plant[0] - creature.x), (plant[1] - creature.y) ))) % 360
@@ -273,7 +286,7 @@ while not done:
             creature.desiredDirection = output[0] * 180             
             adjustment = (creature.desiredDirection - creature.direction + 540) % 360 - 180
 
-            creature.direction = (creature.direction + max(-20, min(20, adjustment)) + 540) % 360 - 180
+            creature.direction = (creature.direction + max(-50, min(50, adjustment)) + 540) % 360 - 180
             #creature.speed = max(0, min (creature.speed + speed, creature.maxSpeed))
         
         else:
@@ -290,7 +303,7 @@ while not done:
         # creatures attempt to eat
         for plant in plants:
             if math.dist((creature.x, creature.y), (plant.x, plant.y)) <= creature.radius:
-                creature.energy += PLANT_ENERGY
+                creature.energy += plantEnergy
                 plants.remove(plant)
 
             # finds plants within creature's vision
@@ -310,7 +323,7 @@ while not done:
 
     # new plants grow
     plantRegrow += 1
-    if plantRegrow == TIME_FOR_PLANT_GROWTH:
+    if plantRegrow > timeForPlantGrowth:
         plants.append(Plant())
         plantRegrow = 0
     for plant in plants:
