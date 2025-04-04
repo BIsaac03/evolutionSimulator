@@ -15,7 +15,7 @@ as their parents and, with any luck, prove more adept at surviving in their envi
 
 <h3> Creatures: </h3>
 
-- Random movement
+- Intelligent movement
 - Energy
 - Traits
 - Reproduction
@@ -29,18 +29,15 @@ as their parents and, with any luck, prove more adept at surviving in their envi
 <h3> User Interface: </h3>
 
 - Adjustable clock speed
+- Adjustable mutation rate
+- Adjustable plant spawn rate
 - Individual creature pop-ups
+- Savable neural networks
 
 <h1> Future Goals </h1>
 
-<h3> Creatures: </h3>
-
-- Intelligence
-
 <h3> User Interface: </h3>
 
-- Adjustable mutation rate
-- Adjustable plant spawn rate
 - Manual creature movement
 - Customizable setup
 - Evolution Summary
