@@ -45,6 +45,13 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 DISPLAY_FONT = pygame.freetype.SysFont('Comic Sans MS', 30)
 LABEL_FONT = pygame.freetype.SysFont('Comic Sans MS', 15)
 pygame.display.set_caption("Interactive Evolution Simulator")
+try:
+    SETTINGS_ICON = pygame.image.load("settings.png")
+except pygame.error as e:
+    print(f"Error loading image: {e}")
+    pygame.quit()
+    exit()
+SETTINGS_ICON = pygame.transform.scale(SETTINGS_ICON, (40, 40))
 clock = pygame.time.Clock()
 
 class Creature:
@@ -146,8 +153,8 @@ class Creature:
         else: DISPLAY_FONT.render_to(screen, (10, 400), "No Plants in Sight", (40, 40, 40))
         DISPLAY_FONT.render_to(screen, (10, 500), "Framerate: " + str(FRAME_RATE), (40, 40, 40))
 
-        pygame.draw.circle(screen, (0,0,0), (100, 20), 20)
-        LABEL_FONT.render_to(screen, (70, 50), "Save NN", (40, 40, 40))
+        pygame.draw.circle(screen, (0,0,0), (150, 20), 20)
+        LABEL_FONT.render_to(screen, (120, 50), "Save NN", (40, 40, 40))
         pygame.draw.circle(screen, (170,50,70), (250, 20), 20)
         LABEL_FONT.render_to(screen, (238, 50), "Cull", (40, 40, 40))
 
@@ -158,6 +165,13 @@ class Plant:
     
     def draw(self, screen):
         pygame.draw.circle(screen, (15, 200, 50), (self.x, self.y), 5)
+
+def displayDividingLine(x):
+        pygame.draw.line(screen, (0,0,0), (x, 0), (x, SCREEN_HEIGHT), 1)
+
+def displaySettingsIcon(x, y):
+    screen.blit(SETTINGS_ICON, (x, y))
+    LABEL_FONT.render_to(screen, (x - 20, 50), "Modify Sim.", (40, 40, 40))
 
 NNfile = open("creatureNN.txt", "r")
 trainedNN = eval(NNfile.read())
@@ -180,6 +194,20 @@ paused = False
 done = False
 while not done:
 
+    while paused:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    paused = not paused
+
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                for creature in creatures:
+                    creature.shouldDisplay = False
+                    if math.dist(pygame.mouse.get_pos(), (creature.x, creature.y)) < creature.radius:
+                        creature.shouldDisplay = True
+                        creature.displayDetails()      
+        pygame.display.flip()
+
     events = pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
@@ -188,30 +216,21 @@ while not done:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 paused = not paused
-                while paused:
-                    for event in pygame.event.get():
-                        if event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_SPACE:
-                                paused = not paused
-
-                        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                            for creature in creatures:
-                                creature.shouldDisplay = False
-                                if math.dist(pygame.mouse.get_pos(), (creature.x, creature.y)) < creature.radius:
-                                    creature.shouldDisplay = True
-                                    creature.displayDetails()
-                                    pygame.display.flip()
 
             # arrow keys speed up/slow down the simulation
             elif event.key == pygame.K_LEFT:
                 FRAME_RATE = max(1, FRAME_RATE - 10)
             elif event.key == pygame.K_RIGHT:
-                FRAME_RATE = min(500, FRAME_RATE + 10)
+                FRAME_RATE = min(100, FRAME_RATE + 10)
 
-        
+
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            # "modiy sim." button
+            if math.dist(pygame.mouse.get_pos(), (50, 25)) < 20:
+                paused = True
+
             # "save NN" button
-            if math.dist(pygame.mouse.get_pos(), (100, 20)) < 20:
+            if math.dist(pygame.mouse.get_pos(), (150, 20)) < 20:
                 for creature in creatures:
                     if creature.shouldDisplay == True:
                         f = open("creatureNN.txt", "w")
@@ -236,7 +255,8 @@ while not done:
                 creature.shouldDisplay = False
 
     screen.fill((255, 255, 255))
-    pygame.draw.line(screen, (0,0,0), (300, 0), (300, SCREEN_HEIGHT), 1)
+    displayDividingLine(300)
+    displaySettingsIcon(30, 5)
 
     for creature in creatures:
         
