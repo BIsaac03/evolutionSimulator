@@ -171,6 +171,7 @@ creatures = [Creature(1, (125, 125, 125),  ORIGINAL_RADIUS, ORIGINAL_MAX_SPEED, 
 
 plants = [Plant() for _ in range(STARTING_PLANTS)]
 
+testTick = 0
 plantRegrow = 0
 paused = False
 done = False
@@ -286,5 +287,28 @@ while not done:
 
     clock.tick(FRAME_RATE)
     pygame.display.flip()
+
+    testTick += 1
+
+    if testTick == 400:
+        d1, speed = creatures[0].movementModel.determineMovement([45, 45])
+        d2, speed = creatures[0].movementModel.determineMovement([4.5, 4.5])
+        d3, speed = creatures[0].movementModel.determineMovement([20, 0])
+        d4, speed = creatures[0].movementModel.determineMovement([-200, 0])
+        d5, speed = creatures[0].movementModel.determineMovement([0, -200])
+        d6, speed = creatures[0].movementModel.determineMovement([0, 200])
+        d7, speed = creatures[0].movementModel.determineMovement([-50, -50])
+        d8, speed = creatures[0].movementModel.determineMovement([35, -35])
+
+        print("45      ", d1 * 180)
+        print("45      ", d2 * 180)
+        print("90      ", d3 * 180)
+        print("-90     ", d4 * 180)
+        print("+/- 180 ", d5 * 180)
+        print("0       ", d6 * 180)
+        print("-135    ", d7 * 180)
+        print("135     ", d8 * 180)
+        testTick = 0
+
 
 pygame.quit()
