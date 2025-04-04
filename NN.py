@@ -16,8 +16,8 @@ class creatureMovementNN:
 
     def determineMovement(self, relativePlantPosition):
 
-        B = [sigmoid(sum([relativePlantPosition[j] * self.AWeights[i][j] for j in range(2)])) for i in range(128)]
-        C = [sigmoid(sum([B[j] * self.BWeights[i][j] for j in range(128)])) for i in range(64)]
-        D = [sigmoid(sum([C[j] * self.CWeights[i][j] for j in range(64)])) for i in range(32)]
+        B = [sigmoid(sum([relativePlantPosition[j] * self.AWeights[i][j] for j in range(2)])) for i in range(256)]
+        C = [sigmoid(sum([B[j] * self.BWeights[i][j] for j in range(256)])) for i in range(128)]
+        D = [sigmoid(sum([C[j] * self.CWeights[i][j] for j in range(128)])) for i in range(32)]
         output = [math.tanh(sum([D[j] * self.DWeights[i][j] for j in range(32)])) for i in range(2)]
         return output
