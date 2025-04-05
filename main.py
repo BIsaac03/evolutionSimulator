@@ -9,15 +9,15 @@ SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 600
 
 FRAME_RATE = 60
-STARTING_CREATURES = 15
+STARTING_CREATURES = 215
 STARTING_PLANTS = 70
 
 ORIGINAL_RADIUS = 10
-ORIGINAL_MAX_SPEED = 3
+ORIGINAL_MAX_SPEED = 20
 ORIGINAL_LIFESPAN = 500
 ORIGINAL_AGE_OF_MATURITY = 200
-ORIGINAL_VISION_DISTANCE = 150
-ORIGINAL_PERIPHERAL_VISION = 45
+ORIGINAL_VISION_DISTANCE = 450
+ORIGINAL_PERIPHERAL_VISION = 245
 ORIGINAL_MAX_ENERGY = 500 
 CONSTANT_ENERGY_LOSS = 0.05
 ENERGY_LOSS_PER_SPEED = 0.1
@@ -113,13 +113,13 @@ class Creature:
                         (max(0, min(255, self.color[0] + random.randint(-10, 10))),
                         max(0, min(255, self.color[1] + random.randint(-10, 10))), 
                         max(0, min(255, self.color[2] + random.randint(-10, 10)))), 
-                        self.radius,# + random.randint(-1, 1),
-                        self.maxSpeed,# + random.randint(-1, 1),
-                        self.lifespan + random.randint(-10, 10), 
-                        self.ageOfMaturity + random.randint(-10, 10), 
-                        self.visionDistance + random.randint(-10, 10), 
-                        self.pereipheralVision + random.randint(-10, 10),
-                        self.maxEnergy + random.uniform(-1, 1), 
+                        max(1, self.radius + random.randint(-1, 1)),
+                        max(1, self.maxSpeed + random.randint(-1, 1)),
+                        max(10, self.lifespan + random.randint(-10, 10)), 
+                        max(10, self.ageOfMaturity + random.randint(-10, 10)), 
+                        max(10, self.visionDistance + random.randint(-10, 10)), 
+                        max(10, self.pereipheralVision + random.randint(-10, 10)),
+                        max(1, self.maxEnergy + random.uniform(-1, 1)), 
                         
                         [[[self.movementModelWeights[0][i][j] + creatureNNMutation() for j in range(2)] for i in range(L1NEURONS)],
                         [[self.movementModelWeights[1][i][j] + creatureNNMutation() for j in range(L1NEURONS)] for i in range(L2NEURONS)],
@@ -277,7 +277,6 @@ while not done:
             creature.displayDetails()
 
         # creatures update speed and direction
-        creature.speed = 10#max(0, min (creature.speed + random.uniform(-1, 1), creature.maxSpeed))
         plant = creature.findOptimalPlant()
         if plant is not None:
             #creature.desiredDirection = (360 + math.degrees(math.atan2((plant[0] - creature.x), (plant[1] - creature.y) ))) % 360
@@ -287,12 +286,12 @@ while not done:
             adjustment = (creature.desiredDirection - creature.direction + 540) % 360 - 180
 
             creature.direction = (creature.direction + max(-50, min(50, adjustment)) + 540) % 360 - 180
-            #creature.speed = max(0, min (creature.speed + speed, creature.maxSpeed))
+            creature.speed = max(0, min (output[1] + creature.speed, creature.maxSpeed))
         
         else:
             creature.direction = (creature.direction + random.uniform(-10, 10) + 180) % 360 - 180
             creature.desiredDirection = None
-            #creature.speed = max(0, min (creature.speed + random.uniform(-1, 1), creature.maxSpeed))
+            creature.speed = max(0, min (creature.speed + random.uniform(-1, 1), creature.maxSpeed))
 
         creature.move()
         creature.plantsInSight.clear()
